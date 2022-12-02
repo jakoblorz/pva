@@ -4,6 +4,7 @@ import type {
   OmitUndefined,
   StringToBoolean,
 } from "./types";
+import createDeepMergeAll from "@fastify/deepmerge";
 
 export type VariantProps<Component extends (...args: any) => any> = Omit<
   OmitUndefined<Parameters<Component>[0]>,
@@ -19,6 +20,10 @@ const falsyToString = <T extends unknown>(value: T) =>
 export type CxOptions = ClassValue[];
 export type CxReturn = string;
 
+const CxProps = [
+  ...(["class", "className"] satisfies Array<keyof ClassProp>),
+] as const;
+
 export const cx = <T extends CxOptions>(...classes: T): CxReturn =>
   // @ts-ignore
   classes.flat(Infinity).filter(Boolean).join(" ");
@@ -26,28 +31,36 @@ export const cx = <T extends CxOptions>(...classes: T): CxReturn =>
 /* cva
   ============================================ */
 
-type ConfigSchema = Record<string, Record<string, ClassValue>>;
+type ClassConfigSchema = Record<string, Record<string, ClassValue>>;
+type PropConfigSchema<T> = Record<string, Record<string, T>>;
 
-type ConfigVariants<T extends ConfigSchema> = {
+type ConfigSchema<T> = T extends Record<string, Record<string, infer U>>
+  ? U extends ClassValue
+    ? ClassConfigSchema
+    : PropConfigSchema<U>
+  : never;
+
+type ConfigVariants<T extends ClassConfigSchema> = {
   [Variant in keyof T]?: StringToBoolean<keyof T[Variant]> | null;
 };
 
-type Config<T> = T extends ConfigSchema
-  ? {
-      variants?: T;
-      defaultVariants?: ConfigVariants<T>;
-      compoundVariants?: (T extends ConfigSchema
-        ? ConfigVariants<T> & ClassProp
-        : ClassProp)[];
-    }
-  : never;
+type Config<T extends Record<string, Record<string, any>>> =
+  T extends ConfigSchema<T>
+    ? {
+        variants?: T;
+        defaultVariants?: ConfigVariants<T>;
+        compoundVariants?: (T extends ClassConfigSchema
+          ? ConfigVariants<T> & ClassProp
+          : ClassProp)[];
+      }
+    : never;
 
-type Props<T> = T extends ConfigSchema
+type Props<T> = T extends ClassConfigSchema
   ? ConfigVariants<T> & ClassProp
   : ClassProp;
 
 export const cva =
-  <T>(base?: ClassValue, config?: Config<T>) =>
+  <T extends ClassConfigSchema>(base?: ClassValue, config?: Config<T>) =>
   (props?: Props<T>) => {
     if (config?.variants == null)
       return cx(base, props?.class, props?.className);
@@ -106,3 +119,27 @@ export const cva =
       props?.className
     );
   };
+
+/* px
+  ============================================ */
+
+export const px = createDeepMergeAll({
+  mergeArray(options) {
+    return (source, target) => {
+      return [...source, ...target].flat(Infinity).filter(Boolean);
+    };
+  },
+});
+
+/* pva
+  ============================================ */
+
+export const pva = <P extends ClassProp>(
+  base?: Props<PropConfigSchema<P>>,
+  config?: Config<PropConfigSchema<P>>
+) => ({
+  props: (props?: Props<PropConfigSchema<P>>) => {
+    if (config?.variants == null) return px(base, props);
+  },
+  prop: (prop: keyof P, value: P[keyof P]) => {},
+});

@@ -1,5 +1,5 @@
 import type * as CVA from "./";
-import { cva, cx } from "./";
+import { cva, cx, px } from "./";
 
 describe("cx", () => {
   describe.each<CVA.CxOptions>([
@@ -33,6 +33,19 @@ describe("cx", () => {
   });
 });
 
+describe("px", () => {
+  describe.each<[[any, any], any]>([
+    [[{}, {}], {}],
+    [[{ a: [] }, { a: [] }], { a: [] }],
+    [[{ a: [] }, { a: [1] }], { a: [1] }],
+    [[{ a: [0] }, { a: [1] }], { a: [1] }],
+  ])("px(%o)", ([arg0, arg1], expected) => {
+    test(`returns ${expected}`, () => {
+      expect(px(arg0, arg1)).toStrictEqual(expected);
+    });
+  });
+});
+
 describe("cva", () => {
   describe("without base", () => {
     describe("without anything", () => {
@@ -41,7 +54,6 @@ describe("cva", () => {
         expect(example()).toBe("");
         expect(
           example({
-            // @ts-expect-error
             aCheekyInvalidProp: "lol",
           })
         ).toBe("");
@@ -64,7 +76,6 @@ describe("cva", () => {
         expect(example()).toBe("");
         expect(
           example({
-            // @ts-expect-error
             aCheekyInvalidProp: "lol",
           })
         ).toBe("");
@@ -87,7 +98,6 @@ describe("cva", () => {
         expect(example()).toBe("");
         expect(
           example({
-            // @ts-expect-error
             aCheekyInvalidProp: "lol",
           })
         ).toBe("");
