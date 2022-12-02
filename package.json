@@ -44,6 +44,8 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
+    "@commitlint/cli": "^17.3.0",
+    "@commitlint/config-conventional": "^17.3.0",
     "@swc/cli": "0.1.57",
     "@swc/core": "1.2.198",
     "@swc/jest": "0.2.21",
@@ -55,11 +57,11 @@
     "jest": "28.1.1",
     "lint-staged": "13.0.1",
     "npm-run-all": "4.1.5",
-    "prettier": "2.6.2",
+    "prettier": "2.8.0",
     "react": "18.1.0",
     "react-dom": "18.1.0",
     "ts-node": "10.8.1",
-    "typescript": "4.7.3"
+    "typescript": "4.9.3"
   },
   "peerDependencies": {
     "typescript": ">= 4.5.5 < 5"
@@ -68,5 +70,8 @@
     "typescript": {
       "optional": true
     }
+  },
+  "dependencies": {
+    "@fastify/deepmerge": "^1.2.0"
   }
 }
